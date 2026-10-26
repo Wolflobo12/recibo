@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Recibo</title>
+<meta name="theme-color" content="#1f4e8c">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>body{margin:0}[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
+</head>
+<body>
+<style>
+/* Layout: coluna única no celular — formulário, assinatura, imagem pronta. Duas colunas no desktop. */
+:root{
+  --bg:#eef1f4; --card:#ffffff; --fg:#1b2430; --muted:#5d6b7a; --line:#d3dae2;
+  --accent:#1f4e8c; --accent-fg:#ffffff; --ok:#1d7a4a;
+  --font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12171d; --card:#1b222b; --fg:#e6ebf0; --muted:#9aa8b6; --line:#2e3946;
+  --accent:#6fa3e8; --accent-fg:#0d1622; --ok:#5fc48f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12171d; --card:#1b222b; --fg:#e6ebf0; --muted:#9aa8b6; --line:#2e3946;
+  --accent:#6fa3e8; --accent-fg:#0d1622; --ok:#5fc48f; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--font);font-size:16px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:20px}
+h1{font-size:1.6rem;font-weight:800;margin:0;text-wrap:balance}
+.sub{color:var(--muted);margin:4px 0 0}
+.cols{display:grid;gap:20px;grid-template-columns:1fr}
+@media (min-width:900px){.cols{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);align-items:start}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:14px;min-width:0}
+.card h2{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;font-weight:800}
+label{display:grid;gap:6px;font-weight:600;font-size:.92rem}
+input,select{font:inherit;font-size:16px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);width:100%;box-sizing:border-box}
+input:focus,select:focus,button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ext{font-size:.85rem;color:var(--muted);font-weight:400}
+#pad{width:100%;height:170px;border:1px dashed var(--muted);border-radius:10px;background:#fff;touch-action:none;display:block}
+.btns{display:flex;flex-wrap:wrap;gap:10px}
+button{font:inherit;font-weight:700;border-radius:10px;padding:12px 16px;border:1px solid var(--line);background:var(--bg);color:var(--fg);cursor:pointer}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);flex:1}
+#out{width:100%;border:1px solid var(--line);border-radius:8px;display:block;background:#fff}
+.tip{background:var(--bg);border-radius:10px;padding:12px;font-size:.92rem;line-height:1.45}
+.tip b{color:var(--ok)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Recibo de Reforma</h1>
+    <p class="sub">Preencha, assine com o dedo e salve a imagem.</p>
+  </header>
+  <div class="cols">
+    <form class="card" id="f" autocomplete="off">
+      <h2>Cliente (quem pagou)</h2>
+      <label>Nome <input id="pagador" placeholder="Ex.: Maria da Silva"></label>
+      <label>CPF ou CNPJ <input id="pagadorDoc" inputmode="numeric" placeholder="000.000.000-00"></label>
+      <h2>Pagamento</h2>
+      <label>Valor (R$) <input id="valor" inputmode="decimal" value="1.000,00">
+        <span class="ext" id="extenso"></span></label>
+      <label>Referente a <input id="ref" value="entrada para a reforma do banheiro"></label>
+      <label>Forma de pagamento
+        <select id="forma"><option>Pix</option><option>Dinheiro</option><option>Transferência bancária</option><option>Cartão</option><option>Cheque</option></select></label>
+      <div class="row">
+        <label>Cidade <input id="cidade" placeholder="Cidade/UF"></label>
+        <label>Data <input id="data" type="date"></label>
+      </div>
+      <h2>Quem recebeu</h2>
+      <label>Nome <input id="recebedor" placeholder="Seu nome"></label>
+      <label>CPF ou CNPJ <input id="recebedorDoc" inputmode="numeric" placeholder="000.000.000-00"></label>
+      <label>Assinatura <canvas id="pad"></canvas></label>
+      <div class="btns"><button type="button" id="limpar">Limpar assinatura</button></div>
+    </form>
+
+    <section class="card">
+      <h2>Recibo pronto</h2>
+      <img id="out" alt="Imagem do recibo preenchido">
+      <div class="btns"><button type="button" class="primary" id="enviar">Enviar (WhatsApp)</button><button type="button" id="baixar">Salvar na galeria</button></div>
+      <p class="tip"><b>Dica:</b> “Enviar” abre o WhatsApp (ou outro app) com o recibo pronto. A imagem se atualiza sozinha enquanto você preenche.</p>
+    </section>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const ids=["pagador","pagadorDoc","valor","ref","forma","cidade","data","recebedor","recebedorDoc"];
+const keep=["cidade","recebedor","recebedorDoc"]; // dados do recebedor ficam salvos neste aparelho
+try{keep.forEach(k=>{const v=localStorage.getItem("rec_"+k);if(v)$(k).value=v;});}catch(e){}
+if(!$("data").value){const d=new Date();$("data").value=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+
+// ---- valor por extenso ----
+const U=["zero","um","dois","três","quatro","cinco","seis","sete","oito","nove","dez","onze","doze","treze","quatorze","quinze","dezesseis","dezessete","dezoito","dezenove"];
+const T=["","","vinte","trinta","quarenta","cinquenta","sessenta","setenta","oitenta","noventa"];
+const C=["","cento","duzentos","trezentos","quatrocentos","quinhentos","seiscentos","setecentos","oitocentos","novecentos"];
+function g(n){if(n===100)return"cem";const p=[],h=Math.floor(n/100),r=n%100;if(h)p.push(C[h]);
+  if(r){if(r<20)p.push(U[r]);else{p.push(T[Math.floor(r/10)]+(r%10?" e "+U[r%10]:""));}}return p.join(" e ");}
+function inteiro(n){if(n===0)return"zero";const mi=Math.floor(n/1e6),mil=Math.floor(n/1000)%1000,r=n%1000,p=[];
+  if(mi)p.push(mi===1?"um milhão":g(mi)+" milhões");
+  if(mil)p.push(mil===1?"mil":g(mil)+" mil");
+  if(r)p.push(g(r));
+  let s=p[0];for(let i=1;i<p.length;i++){const last=i===p.length-1&&r;s+=(last&&(r<100||r%100===0))||(!last)?" e "+p[i]:" "+p[i];}
+  return s;}
+function parseValor(s){s=(s||"").replace(/[^\d,\.]/g,"");if(s.includes(","))s=s.replace(/\./g,"").replace(",",".");else if((s.match(/\./g)||[]).length>1||/\.\d{3}$/.test(s))s=s.replace(/\./g,"");const v=parseFloat(s);return isNaN(v)?0:Math.round(v*100)/100;}
+function extenso(v){const r=Math.floor(v),c=Math.round((v-r)*100);let s="";
+  if(r){s=inteiro(r)+(r===1?" real":(r%1e6===0?" de reais":" reais"));}
+  if(c){s+=(s?" e ":"")+inteiro(c)+(c===1?" centavo":" centavos");}
+  return s||"zero reais";}
+const brl=v=>v.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const MES=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+
+// ---- assinatura ----
+const pad=$("pad");const pc=pad.getContext("2d");let drawing=false,hasSig=false,last=null;
+function sizePad(){const r=pad.getBoundingClientRect();const img=hasSig?pad.toDataURL():null;pad.width=r.width*2;pad.height=r.height*2;
+  pc.lineWidth=5;pc.lineCap="round";pc.lineJoin="round";pc.strokeStyle="#0d2a5c";
+  if(img){const i=new Image();i.onload=()=>pc.drawImage(i,0,0,pad.width,pad.height);i.src=img;}}
+const pos=e=>{const r=pad.getBoundingClientRect();return[(e.clientX-r.left)*2,(e.clientY-r.top)*2];};
+pad.addEventListener("pointerdown",e=>{drawing=true;last=pos(e);pad.setPointerCapture(e.pointerId);});
+pad.addEventListener("pointermove",e=>{if(!drawing)return;const p=pos(e);pc.beginPath();pc.moveTo(...last);pc.lineTo(...p);pc.stroke();last=p;hasSig=true;});
+const end=()=>{if(drawing){drawing=false;render();}};
+pad.addEventListener("pointerup",end);pad.addEventListener("pointercancel",end);
+$("limpar").onclick=()=>{pc.clearRect(0,0,pad.width,pad.height);hasSig=false;render();};
+window.addEventListener("resize",sizePad);sizePad();
+
+// ---- desenho do recibo ----
+const W=1600,H=1000,cv=document.createElement("canvas");cv.width=W;cv.height=H;const d=cv.getContext("2d");
+const F="DejaVu Sans, Arial, Helvetica, sans-serif";
+function wrap(text,x,y,maxW,lh,font){d.font=font;const words=text.split(" ");let line="",lines=[];
+  for(const w of words){const t=line?line+" "+w:w;if(d.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;}
+  if(line)lines.push(line);lines.forEach((l,i)=>d.fillText(l,x,y+i*lh));return lines.length;}
+function field(label,val,x,y,x1){d.font="32px "+F;d.fillStyle="#111";d.fillText(label,x,y);const w=d.measureText(label).width;
+  d.strokeStyle="#555";d.lineWidth=2;d.beginPath();d.moveTo(x+w+10,y+10);d.lineTo(x1,y+10);d.stroke();
+  if(val){d.font="bold 32px "+F;d.fillStyle="#0d2a5c";d.fillText(val,x+w+18,y-2);}}
+function render(){
+  const v=Object.fromEntries(ids.map(k=>[k,$(k).value.trim()]));
+  try{keep.forEach(k=>localStorage.setItem("rec_"+k,v[k]));}catch(e){}
+  const valor=parseValor(v.valor);$("extenso").textContent="("+extenso(valor)+")";
+  d.textBaseline="alphabetic";d.fillStyle="#fff";d.fillRect(0,0,W,H);
+  d.strokeStyle="#222";d.lineWidth=4;d.strokeRect(30,30,W-60,H-60);
+  d.fillStyle="#111";d.font="bold 64px "+F;d.fillText("RECIBO",80,135);
+  d.lineWidth=3;d.beginPath();d.roundRect(1060,70,W-1140,80,12);d.stroke();
+  d.font="bold 40px "+F;d.fillText("R$ "+brl(valor),1090,125);
+  d.strokeStyle="#999";d.lineWidth=2;d.beginPath();d.moveTo(80,180);d.lineTo(W-80,180);d.stroke();
+  let y=270;
+  field("Recebi de",v.pagador,80,y,W-80);y+=80;
+  field("CPF/CNPJ",v.pagadorDoc,80,y,W-80);y+=75;
+  d.fillStyle="#111";
+  const n=wrap(`a importância de R$ ${brl(valor)} (${extenso(valor)}), referente a ${v.ref||"________________"}.`,80,y,W-160,50,"32px "+F);
+  y+=n*50+40;
+  field("Forma de pagamento",v.forma,80,y,W-80);y+=95;
+  let dt="";if(v.data){const [a,m,dd]=v.data.split("-");dt=`${+dd} de ${MES[+m-1]} de ${a}`;}
+  field("Local e data",[v.cidade,dt].filter(Boolean).join(", "),80,y,1100);
+  const sy=Math.max(y+170,830);
+  if(hasSig){const r=pad.width/pad.height;let sw=560,sh=sw/r;if(sh>150){sh=150;sw=sh*r;}d.drawImage(pad,900+(580-sw)/2,sy-sh-4,sw,sh);}
+  d.strokeStyle="#222";d.lineWidth=2;d.beginPath();d.moveTo(900,sy);d.lineTo(W-120,sy);d.stroke();
+  d.fillStyle="#333";d.font="26px "+F;d.fillText("Assinatura do recebedor",900,sy+34);
+  d.font="26px "+F;d.fillText("Nome: "+(v.recebedor||"______________________________"),900,sy+72);
+  d.fillText("CPF/CNPJ: "+(v.recebedorDoc||"__________________________"),900,sy+108);
+  $("out").src=cv.toDataURL("image/png");
+}
+ids.forEach(k=>$(k).addEventListener("input",render));$("forma").addEventListener("change",render);
+$("f").addEventListener("submit",e=>e.preventDefault());
+function nomeArq(){const n=($("pagador").value.trim()||"cliente").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\w]+/g,"-");return "recibo-"+n+"-"+$("data").value+".png";}
+function baixar(){render();const a=document.createElement("a");a.href=cv.toDataURL("image/png");a.download=nomeArq();document.body.appendChild(a);a.click();a.remove();}
+$("baixar").onclick=baixar;
+$("enviar").onclick=()=>{render();cv.toBlob(async b=>{const f=new File([b],nomeArq(),{type:"image/png"});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:"Recibo"});}catch(e){}}else baixar();},"image/png");};
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(render);render();
+</script>
+<script>if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js");</script>
+</body>
+</html>
